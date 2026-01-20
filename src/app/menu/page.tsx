@@ -5,13 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useCart } from "@/context/CartContext";
-import { 
-  Plus, 
-  Minus, 
-  ShoppingCart, 
-  Leaf, 
-  Flame, 
-  Star, 
+import {
+  Plus,
+  Minus,
+  ShoppingCart,
+  Leaf,
+  Flame,
+  Star,
   CheckCircle2,
   X,
   AlertTriangle,
@@ -39,7 +39,7 @@ type MenuItem = {
 const categories = [
   "All",
   "Appetizers",
-  "Pasta", 
+  "Pasta",
   "Grilled Sandwich",
   "Open Sandwich",
   "Pizza",
@@ -76,7 +76,7 @@ export default function MenuPage() {
       .select("*")
       .eq("is_available", true)
       .order("name");
-    
+
     if (error) {
       toast.error("Failed to load menu items");
     } else {
@@ -88,14 +88,14 @@ export default function MenuPage() {
     const { data, error } = await supabase
       .from("cafe_tables")
       .select("id");
-    
+
     if (!error && data) {
       setValidTables(data.map(t => t.id));
     }
   };
 
-  const filteredItems = selectedCategory === "All" 
-    ? items 
+  const filteredItems = selectedCategory === "All"
+    ? items
     : items.filter(item => item.category === selectedCategory);
 
   const handlePlaceOrder = async () => {
@@ -105,7 +105,7 @@ export default function MenuPage() {
     }
 
     const tableNum = parseInt(tableNumber);
-    
+
     if (!validTables.includes(tableNum)) {
       toast.error(`Table ${tableNum} is not available in this cafe. Please check your table number.`, {
         icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
@@ -121,7 +121,7 @@ export default function MenuPage() {
         .select("*, current_order_id")
         .eq("id", tableNum)
         .single();
-      
+
       if (tableError || !tableData) {
         toast.error(`Table ${tableNum} does not exist. Please enter a valid table number.`);
         setIsOrdering(false);
@@ -134,7 +134,7 @@ export default function MenuPage() {
           .select("id, total_price, status")
           .eq("id", tableData.current_order_id)
           .single();
-        
+
         if (existingOrder && existingOrder.status !== 'completed' && existingOrder.status !== 'cancelled') {
           const orderItems = cart.map(item => ({
             order_id: existingOrder.id,
@@ -152,7 +152,7 @@ export default function MenuPage() {
           const newTotal = Number(existingOrder.total_price) + totalPrice;
           await supabase
             .from("orders")
-            .update({ 
+            .update({
               total_price: newTotal,
               updated_at: new Date().toISOString()
             })
@@ -195,9 +195,9 @@ export default function MenuPage() {
 
       await supabase
         .from("cafe_tables")
-        .update({ 
-          status: "occupied", 
-          current_order_id: order.id 
+        .update({
+          status: "occupied",
+          current_order_id: order.id
         })
         .eq("id", tableNum);
 
@@ -239,16 +239,16 @@ export default function MenuPage() {
     );
   }
 
-    return (
-      <div className="flex flex-col min-h-screen bg-background">
-        <header className="sticky top-0 z-50 h-16 flex items-center justify-center bg-white/95 backdrop-blur-md border-b px-4">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-              <Coffee className="h-5 w-5 text-primary" />
-            </div>
-            <span className="text-lg font-serif font-bold text-primary">CAFE REPUBLIC</span>
-          </Link>
-        </header>
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      <header className="sticky top-0 z-50 h-16 flex items-center justify-center bg-white/95 backdrop-blur-md border-b px-4">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+            <Coffee className="h-5 w-5 text-primary" />
+          </div>
+          <span className="text-lg font-serif font-bold text-primary">CAFE REPUBLIC</span>
+        </Link>
+      </header>
 
       <div className="sticky top-[64px] z-40 flex gap-2 overflow-x-auto bg-background/95 p-4 backdrop-blur-md hide-scrollbar border-b">
         {categories.map((cat) => (
@@ -257,8 +257,8 @@ export default function MenuPage() {
             onClick={() => setSelectedCategory(cat)}
             className={cn(
               "whitespace-nowrap rounded-full px-5 py-2 text-sm font-medium transition-colors",
-              selectedCategory === cat 
-                ? "bg-primary text-white" 
+              selectedCategory === cat
+                ? "bg-primary text-white"
                 : "bg-muted text-muted-foreground hover:bg-muted/80"
             )}
           >
@@ -281,9 +281,9 @@ export default function MenuPage() {
                 className="flex gap-4 rounded-2xl bg-white p-3 shadow-sm border"
               >
                 <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-muted">
-                  <img 
-                    src={item.image_url || `https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=200&auto=format&fit=crop`} 
-                    alt={item.name} 
+                  <img
+                    src={item.image_url || `https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=200&auto=format&fit=crop`}
+                    alt={item.name}
                     className="h-full w-full object-cover"
                   />
                   {item.is_bestseller && (
@@ -292,7 +292,7 @@ export default function MenuPage() {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex flex-1 flex-col justify-between py-0.5">
                   <div>
                     <div className="flex items-start justify-between">
@@ -303,22 +303,22 @@ export default function MenuPage() {
                       {item.description}
                     </p>
                     <div className="mt-2 flex gap-2">
-                      {item.is_vegetarian && <Leaf className="h-3 w-3 text-green-500" title="Vegetarian" />}
-                      {item.is_spicy && <Flame className="h-3 w-3 text-red-500" title="Spicy" />}
+                      {item.is_vegetarian && <Leaf className="h-4 w-4 text-green-600" />}
+                      {item.is_spicy && <Flame className="h-4 w-4 text-red-600" />}
                     </div>
                   </div>
 
                   <div className="mt-2 flex items-center justify-end">
                     {cartItem ? (
                       <div className="flex items-center gap-3 rounded-full bg-muted px-2 py-1">
-                        <button 
+                        <button
                           onClick={() => updateQuantity(item.id, -1)}
                           className="rounded-full bg-white p-1 shadow-sm hover:bg-primary hover:text-white"
                         >
                           <Minus className="h-3 w-3" />
                         </button>
                         <span className="text-sm font-bold w-4 text-center">{cartItem.quantity}</span>
-                        <button 
+                        <button
                           onClick={() => updateQuantity(item.id, 1)}
                           className="rounded-full bg-white p-1 shadow-sm hover:bg-primary hover:text-white"
                         >
@@ -326,8 +326,8 @@ export default function MenuPage() {
                         </button>
                       </div>
                     ) : (
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="secondary"
                         onClick={() => addToCart({
                           id: item.id,
@@ -350,8 +350,8 @@ export default function MenuPage() {
       </div>
 
       {totalItems > 0 && !showCart && (
-        <div className="fixed bottom-24 left-4 right-4 z-40 md:bottom-8 md:left-auto md:right-8 md:w-80">
-          <Button 
+        <div className="fixed bottom-24 left-4 right-4 z-40 md:left-auto md:right-8 md:w-80">
+          <Button
             onClick={() => setShowCart(true)}
             className="h-14 w-full justify-between rounded-full bg-primary px-6 shadow-2xl"
           >
@@ -384,11 +384,11 @@ export default function MenuPage() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-3xl bg-white p-6 pb-8"
+              className="fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-3xl bg-white p-6 pb-24"
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-serif font-bold">Your Order</h2>
-                <button 
+                <button
                   onClick={() => setShowCart(false)}
                   className="rounded-full p-2 hover:bg-muted"
                 >
@@ -400,10 +400,10 @@ export default function MenuPage() {
                 {cart.map((item) => (
                   <div key={item.id} className="flex items-center gap-4 rounded-xl bg-muted/30 p-3">
                     <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-muted">
-                      <img 
-                        src={item.image_url || `https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=200&auto=format&fit=crop`} 
-                        alt={item.name} 
-                        className="h-full w-full object-cover" 
+                      <img
+                        src={item.image_url || `https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=200&auto=format&fit=crop`}
+                        alt={item.name}
+                        className="h-full w-full object-cover"
                       />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -411,14 +411,14 @@ export default function MenuPage() {
                       <p className="text-xs text-muted-foreground">₹{item.price} × {item.quantity}</p>
                     </div>
                     <div className="flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-sm">
-                      <button 
+                      <button
                         onClick={() => updateQuantity(item.id, -1)}
                         className="rounded-full p-1 hover:bg-muted"
                       >
                         <Minus className="h-3 w-3" />
                       </button>
                       <span className="w-5 text-center font-bold text-sm">{item.quantity}</span>
-                      <button 
+                      <button
                         onClick={() => updateQuantity(item.id, 1)}
                         className="rounded-full p-1 hover:bg-muted"
                       >
@@ -432,9 +432,9 @@ export default function MenuPage() {
               <div className="space-y-4">
                 <div>
                   <label className="mb-2 block text-sm font-bold">Table Number</label>
-                  <Input 
-                    type="number" 
-                    placeholder="Enter your table number" 
+                  <Input
+                    type="number"
+                    placeholder="Enter your table number"
                     value={tableNumber}
                     onChange={(e) => setTableNumber(e.target.value)}
                     className="h-12 rounded-xl text-center text-lg font-bold"
@@ -462,8 +462,8 @@ export default function MenuPage() {
                   </div>
                 </div>
 
-                <Button 
-                  onClick={handlePlaceOrder} 
+                <Button
+                  onClick={handlePlaceOrder}
                   disabled={isOrdering || !tableNumber || !validTables.includes(parseInt(tableNumber))}
                   className="h-14 w-full rounded-full text-lg font-bold mb-4"
                 >
@@ -473,7 +473,7 @@ export default function MenuPage() {
             </motion.div>
           </>
         )}
-        </AnimatePresence>
+      </AnimatePresence>
     </div>
   );
 }

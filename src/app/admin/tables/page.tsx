@@ -3,11 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Plus, 
-  Minus, 
-  X, 
-  Search, 
+import {
+  Plus,
+  Minus,
+  X,
+  Search,
   ShoppingCart,
   Coffee,
   Check,
@@ -146,7 +146,7 @@ export default function AdminTablesPage() {
     for (let i = 1; i <= count; i++) {
       newTables.push({ id: currentMax + i, status: "available", current_order_id: null });
     }
-    
+
     const { error } = await supabase.from("cafe_tables").insert(newTables);
     if (error) {
       toast.error("Failed to add tables");
@@ -162,10 +162,10 @@ export default function AdminTablesPage() {
       toast.error(`Can only remove ${availableTables.length} available tables`);
       return;
     }
-    
+
     const tablesToRemove = availableTables.slice(0, count).map(t => t.id);
     const { error } = await supabase.from("cafe_tables").delete().in("id", tablesToRemove);
-    
+
     if (error) {
       toast.error("Failed to remove tables");
     } else {
@@ -174,9 +174,13 @@ export default function AdminTablesPage() {
     }
   };
 
+
+
+
+
   const fetchOrderForTable = async (table: Table) => {
     if (!table.current_order_id) return null;
-    
+
     const { data } = await supabase
       .from("orders")
       .select(`
@@ -191,7 +195,7 @@ export default function AdminTablesPage() {
       `)
       .eq("id", table.current_order_id)
       .single();
-    
+
     return data as Order | null;
   };
 
@@ -463,8 +467,8 @@ export default function AdminTablesPage() {
           <p className="text-muted-foreground">Manage {tables.length} tables - Click to view/add orders</p>
         </div>
         <div className="flex items-center gap-4">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => setShowTableSettings(true)}
             className="rounded-full"
@@ -493,11 +497,13 @@ export default function AdminTablesPage() {
             whileTap={{ scale: 0.95 }}
             className={cn(
               "relative cursor-pointer rounded-2xl p-3 text-center transition-all border-2",
-              table.status === "available" 
-                ? "bg-green-50 border-green-200 hover:border-green-400" 
+              table.status === "available"
+                ? "bg-green-50 border-green-200 hover:border-green-400"
                 : "bg-orange-50 border-orange-200 hover:border-orange-400"
             )}
-            onClick={() => table.status === "available" ? openNewOrder(table) : openViewOrder(table)}
+            onClick={() => {
+              table.status === "available" ? openNewOrder(table) : openViewOrder(table);
+            }}
           >
             <div className={cn(
               "text-2xl font-serif font-bold",
@@ -521,8 +527,8 @@ export default function AdminTablesPage() {
                   <Edit3 className="h-2.5 w-2.5" />
                 </button>
                 <button
-                  onClick={(e) => { 
-                    e.stopPropagation(); 
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setSelectedTable(table);
                     fetchOrderForTable(table).then(order => {
                       if (order) {
@@ -568,8 +574,8 @@ export default function AdminTablesPage() {
               className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
-              <button 
-                onClick={() => setShowTableSettings(false)} 
+              <button
+                onClick={() => setShowTableSettings(false)}
                 className="absolute right-4 top-4 rounded-full p-2 hover:bg-muted"
               >
                 <X className="h-5 w-5" />
@@ -659,8 +665,8 @@ export default function AdminTablesPage() {
               className="relative w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
-              <button 
-                onClick={() => setShowQuickPay(false)} 
+              <button
+                onClick={() => setShowQuickPay(false)}
                 className="absolute right-4 top-4 rounded-full p-2 hover:bg-muted"
               >
                 <X className="h-5 w-5" />
@@ -781,8 +787,8 @@ export default function AdminTablesPage() {
                             onClick={() => setSelectedCategory(cat)}
                             className={cn(
                               "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-                              selectedCategory === cat 
-                                ? "bg-primary text-white" 
+                              selectedCategory === cat
+                                ? "bg-primary text-white"
                                 : "bg-muted hover:bg-muted/80"
                             )}
                           >
@@ -899,8 +905,8 @@ export default function AdminTablesPage() {
                               onClick={() => setPaymentMode(mode)}
                               className={cn(
                                 "rounded-lg py-2 px-1 text-xs font-medium transition-colors capitalize flex flex-col items-center gap-1",
-                                paymentMode === mode 
-                                  ? `bg-${color}-100 text-${color}-700 border-2 border-${color}-400` 
+                                paymentMode === mode
+                                  ? `bg-${color}-100 text-${color}-700 border-2 border-${color}-400`
                                   : "bg-muted hover:bg-muted/80"
                               )}
                               style={{

@@ -4,13 +4,12 @@ import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase-browser";
-import { supabase } from "@/lib/supabase";
-import { 
-  LayoutDashboard, 
-  ShoppingBag, 
-  Menu as MenuIcon, 
-  BarChart3, 
-  Settings, 
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Menu as MenuIcon,
+  BarChart3,
+  Settings,
   LogOut,
   Bell,
   Loader2,
@@ -79,16 +78,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const lastOrderTotals = useRef<Map<string, number>>(new Map());
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkAuth = async () => {
       const storedSession = localStorage.getItem('employee_session');
       if (storedSession) {
         try {
           const empSession: EmployeeSession = JSON.parse(storedSession);
-          setEmployeeSession(empSession);
-          setUserRole(empSession.role as UserRole);
-          setUserName(empSession.name);
-          setUser({ id: empSession.id, email: empSession.employee_id });
-          setLoading(false);
+          if (isMounted) {
+            setEmployeeSession(empSession);
+            setUserRole(empSession.role as UserRole);
+            setUserName(empSession.name);
+            setUser({ id: empSession.id, email: empSession.employee_id });
+            setLoading(false);
+          }
           return;
         } catch (e) {
           localStorage.removeItem('employee_session');
@@ -97,67 +100,86 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       const browserSupabase = createClient();
       const { data: { session } } = await browserSupabase.auth.getSession();
-      
+
       if (!session && pathname !== "/admin/login") {
         router.push("/admin/login");
-      } else if (session) {
+        return;
+      }
+
+      if (session && isMounted) {
         setUser(session.user);
-        
+
         const isSuperAdmin = session.user.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
-        
+
         if (session.user.user_metadata?.role) {
           setUserRole(session.user.user_metadata.role as UserRole);
           setUserName(session.user.user_metadata.name || "Employee");
         } else {
-          const { data: adminUser } = await supabase
-            .from("admin_users")
-            .select("*")
-            .eq("auth_user_id", session.user.id)
-            .single();
+          try {
+            const { data: adminUser, error } = await browserSupabase
+              .from("admin_users")
+              .select("*")
+              .eq("auth_user_id", session.user.id)
+              .maybeSingle();
 
-          if (adminUser) {
-            setUserRole(isSuperAdmin ? 'super_admin' : (adminUser.role as UserRole || 'employee'));
-            setUserName(adminUser.name || "Admin User");
-          } else if (isSuperAdmin) {
-            setUserRole('super_admin');
-            setUserName("Super Admin");
+            if (!error && adminUser) {
+              setUserRole(isSuperAdmin ? 'super_admin' : (adminUser.role as UserRole || 'employee'));
+              setUserName(adminUser.name || "Admin User");
+            } else if (isSuperAdmin) {
+              setUserRole('super_admin');
+              setUserName("Super Admin");
+            }
+          } catch (err) {
+            console.error("Error fetching admin user:", err);
+            if (isSuperAdmin) {
+              setUserRole('super_admin');
+              setUserName("Super Admin");
+            }
           }
         }
       }
-      setLoading(false);
+
+      if (isMounted) {
+        setLoading(false);
+      }
     };
 
     checkAuth();
-  }, [pathname, router]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [pathname]); // Only depend on pathname, not router
 
   useEffect(() => {
     fetchNotifications();
-    
+
     processedEventIds.current.clear();
     lastOrderTotals.current.clear();
 
-    const channel = supabase
+    const browserSupabase = createClient();
+    const channel = browserSupabase
       .channel('admin_notifications_realtime_v2')
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'orders' 
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'orders'
       }, (payload) => {
         const orderId = payload.new.id;
         const eventKey = `insert-${orderId}`;
-        
+
         if (processedEventIds.current.has(eventKey)) {
           return;
         }
         processedEventIds.current.add(eventKey);
-        
+
         const orderTotal = Number(payload.new.total_price);
         lastOrderTotals.current.set(orderId, orderTotal);
-        
+
         const orderSource = payload.new.order_source;
         const isCustomerOrder = orderSource === 'customer_online';
         const timestamp = Date.now();
-        
+
         const newNotification: Notification = {
           id: `new-order-${orderId}-${timestamp}`,
           title: `New Order - Table ${payload.new.table_number}`,
@@ -167,13 +189,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           is_read: false,
           created_at: new Date().toISOString()
         };
-        
+
         setNotifications(prev => {
           const exists = prev.some(n => n.order_id === orderId && n.type === 'new_order');
           if (exists) return prev;
           return [newNotification, ...prev].slice(0, 20);
         });
-        
+
         if (isCustomerOrder) {
           playNotificationSound();
           toast.success(`New online order from Table ${payload.new.table_number}!`, {
@@ -181,36 +203,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           });
         }
       })
-      .on('postgres_changes', { 
-        event: 'UPDATE', 
-        schema: 'public', 
-        table: 'orders' 
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'orders'
       }, (payload) => {
         const orderId = payload.new.id;
         const newTotal = Number(payload.new.total_price);
         const prevTotal = lastOrderTotals.current.get(orderId) ?? 0;
-        
+
         if (newTotal <= prevTotal) {
           lastOrderTotals.current.set(orderId, Math.max(newTotal, prevTotal));
           return;
         }
-        
+
         const eventKey = `update-${orderId}-${newTotal.toFixed(0)}`;
         if (processedEventIds.current.has(eventKey)) {
           return;
         }
         processedEventIds.current.add(eventKey);
-        
+
         const addedAmount = newTotal - prevTotal;
         lastOrderTotals.current.set(orderId, newTotal);
-        
+
         const orderSource = payload.new?.order_source;
         const isCustomerOrder = orderSource === 'customer_online';
         const timestamp = Date.now();
-        
+
         setNotifications(prev => {
           const filtered = prev.filter(n => !(n.order_id === orderId && n.type === 'item_added'));
-          
+
           const updateNotification: Notification = {
             id: `item-added-${orderId}-${timestamp}`,
             title: `Items Added - Table ${payload.new.table_number}`,
@@ -220,10 +242,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             is_read: false,
             created_at: new Date().toISOString()
           };
-          
+
           return [updateNotification, ...filtered].slice(0, 20);
         });
-        
+
         if (isCustomerOrder) {
           playNotificationSound();
           toast.info(`Table ${payload.new.table_number} added items! (+₹${addedAmount.toFixed(0)})`, {
@@ -234,7 +256,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      browserSupabase.removeChannel(channel);
     };
   }, []);
 
@@ -242,35 +264,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     try {
       const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
       audio.volume = 0.5;
-      audio.play().catch(() => {});
-    } catch (e) {}
+      audio.play().catch(() => { });
+    } catch (e) { }
   };
 
   const fetchNotifications = async () => {
-    const { data } = await supabase
+    const browserSupabase = createClient();
+    const { data } = await browserSupabase
       .from("admin_notifications")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(20);
-    
+
     if (data) setNotifications(data);
   };
 
   const markAsRead = async (id: string) => {
-    await supabase
+    const browserSupabase = createClient();
+    await browserSupabase
       .from("admin_notifications")
       .update({ is_read: true })
       .eq("id", id);
-    
+
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
   };
 
   const markAllAsRead = async () => {
-    await supabase
+    const browserSupabase = createClient();
+    await browserSupabase
       .from("admin_notifications")
       .update({ is_read: true })
       .eq("is_read", false);
-    
+
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
   };
 
@@ -283,20 +308,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     const browserSupabase = createClient();
     const { data: { user } } = await browserSupabase.auth.getUser();
-    
+
     if (user) {
-      const { data: adminUser } = await supabase
+      const browserSupabase = createClient();
+      const { data: adminUser } = await browserSupabase
         .from("admin_users")
         .select("id")
         .eq("auth_user_id", user.id)
         .single();
 
       if (adminUser) {
-        await supabase
+        await browserSupabase
           .from("admin_sessions")
-          .update({ 
-            logout_at: new Date().toISOString(), 
-            status: "logged_out" 
+          .update({
+            logout_at: new Date().toISOString(),
+            status: "logged_out"
           })
           .eq("admin_user_id", adminUser.id)
           .eq("status", "active")
@@ -304,7 +330,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           .limit(1);
       }
     }
-    
+
     await browserSupabase.auth.signOut();
     router.push("/admin/login");
   };
@@ -370,7 +396,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="text-lg font-serif font-bold tracking-tight">CAFE ADMIN</span>
           </Link>
         </div>
-        
+
         <nav className="flex flex-col gap-1 p-4">
           {filteredNavItems.map((item) => {
             const Icon = item.icon;
@@ -381,8 +407,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 href={item.href}
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
-                  isActive 
-                    ? "bg-primary text-white shadow-md" 
+                  isActive
+                    ? "bg-primary text-white shadow-md"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
@@ -409,19 +435,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <h2 className="text-xl font-bold capitalize">
             {adminNavItems.find(i => i.href === pathname)?.label || "Admin"}
           </h2>
-          
+
           <div className="flex items-center gap-4">
-            <a 
-              href="/" 
+            <a
+              href="/"
               target="_blank"
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted transition-colors"
             >
               <Store className="h-4 w-4" />
               View Store
             </a>
-            
+
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="relative rounded-full p-2 hover:bg-muted transition-colors"
               >
@@ -435,8 +461,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
               {showNotifications && (
                 <>
-                  <div 
-                    className="fixed inset-0 z-40" 
+                  <div
+                    className="fixed inset-0 z-40"
                     onClick={() => setShowNotifications(false)}
                   />
                   <div className="absolute right-0 top-12 z-50 w-96 rounded-2xl border bg-white shadow-2xl overflow-hidden">
@@ -447,14 +473,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       </h3>
                       <div className="flex items-center gap-2">
                         {unreadCount > 0 && (
-                          <button 
+                          <button
                             onClick={markAllAsRead}
                             className="text-xs text-primary hover:underline"
                           >
                             Mark all read
                           </button>
                         )}
-                        <button 
+                        <button
                           onClick={() => setShowNotifications(false)}
                           className="p-1 hover:bg-muted rounded-full"
                         >
@@ -471,7 +497,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         </div>
                       ) : (
                         notifications.map((notif) => (
-                          <div 
+                          <div
                             key={notif.id}
                             onClick={() => {
                               markAsRead(notif.id);
@@ -506,7 +532,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </>
               )}
             </div>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 rounded-full border bg-muted/50 p-1 pr-3 hover:bg-muted transition-colors">

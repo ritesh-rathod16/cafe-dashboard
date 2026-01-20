@@ -19,7 +19,7 @@ export function BottomNav() {
   if (pathname.startsWith("/admin")) return null;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t bg-white/80 backdrop-blur-md px-2 pb-safe md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t bg-white/80 backdrop-blur-md px-2 pb-safe">
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = pathname === item.href;
