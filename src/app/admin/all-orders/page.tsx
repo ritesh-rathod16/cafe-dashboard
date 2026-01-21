@@ -9,13 +9,26 @@ import {
     Filter,
     Printer,
     Eye,
+    Download,
+    FileSpreadsheet,
     Trash2,
+    CheckSquare,
+    Square,
+    AlertCircle,
     ChevronLeft,
     ChevronRight,
-    X,
-    Download,
-    FileSpreadsheet
+    X
 } from "lucide-react";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -75,6 +88,9 @@ export default function AllOrdersPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [viewOrderId, setViewOrderId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteTargetIds, setDeleteTargetIds] = useState<string[]>([]);
     const ordersPerPage = 20;
 
     const viewOrder = orders.find(o => o.id === viewOrderId);
@@ -229,6 +245,76 @@ export default function AllOrdersPage() {
         toast.success("Orders exported to Excel successfully!");
     };
 
+    const handleDeleteOrders = async (ids: string[]) => {
+        setIsDeleting(true);
+        try {
+            // 1. Get associated invoices to delete payments
+            const { data: invoices } = await supabase
+                .from("invoices")
+                .select("id")
+                .in("order_id", ids);
+
+            if (invoices && invoices.length > 0) {
+                const invoiceIds = invoices.map(inv => inv.id);
+                // 2. Delete payments associated with these invoices
+                await supabase
+                    .from("payments")
+                    .delete()
+                    .in("invoice_id", invoiceIds);
+            }
+
+            // 3. Delete order items
+            await supabase
+                .from("order_items")
+                .delete()
+                .in("order_id", ids);
+
+            // 4. Delete KOTs
+            await supabase
+                .from("kots")
+                .delete()
+                .in("order_id", ids);
+
+            // 5. Delete invoices (FK linked to orders)
+            await supabase
+                .from("invoices")
+                .delete()
+                .in("order_id", ids);
+
+            // 6. Delete the orders
+            const { error } = await supabase
+                .from("orders")
+                .delete()
+                .in("id", ids);
+
+            if (error) throw error;
+
+            toast.success(`${ids.length} order(s) deleted successfully`);
+            setSelectedOrderIds([]);
+            setDeleteTargetIds([]);
+            fetchOrders();
+        } catch (error) {
+            console.error("Delete error:", error);
+            toast.error("Failed to delete orders");
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedOrderIds.length === currentOrders.length) {
+            setSelectedOrderIds([]);
+        } else {
+            setSelectedOrderIds(currentOrders.map(o => o.id));
+        }
+    };
+
+    const toggleSelectOrder = (id: string) => {
+        setSelectedOrderIds(prev =>
+            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+        );
+    };
+
     // Pagination
     const indexOfLastOrder = currentPage * ordersPerPage;
     const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
@@ -248,6 +334,16 @@ export default function AllOrdersPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    {selectedOrderIds.length > 0 && (
+                        <Button
+                            variant="destructive"
+                            onClick={() => setDeleteTargetIds(selectedOrderIds)}
+                            disabled={isDeleting}
+                        >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Selected ({selectedOrderIds.length})
+                        </Button>
+                    )}
                     <Button variant="outline" onClick={handleExportToExcel}>
                         <FileSpreadsheet className="h-4 w-4 mr-2" />
                         Export to Excel
@@ -348,9 +444,17 @@ export default function AllOrdersPage() {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-muted/50 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                <th className="px-6 py-4 w-10">
+                                    <button onClick={toggleSelectAll} className="p-1 hover:bg-muted rounded">
+                                        {selectedOrderIds.length === currentOrders.length && currentOrders.length > 0 ? (
+                                            <CheckSquare className="h-4 w-4 text-primary" />
+                                        ) : (
+                                            <Square className="h-4 w-4" />
+                                        )}
+                                    </button>
+                                </th>
                                 <th className="px-6 py-4">Order ID</th>
-                                <th className="px-6 py-4 text-center">Table</th>
-                                <th className="px-6 py-4">Customer Name</th>
+                                <th className="px-6 py-4">Customer Name & Table</th>
                                 <th className="px-6 py-4">Cashier</th>
                                 <th className="px-6 py-4">Items</th>
                                 <th className="px-6 py-4">Amount</th>
@@ -375,15 +479,22 @@ export default function AllOrdersPage() {
                                 </tr>
                             ) : (
                                 currentOrders.map((order) => (
-                                    <tr key={order.id} className="group hover:bg-muted/30 transition-colors">
+                                    <tr key={order.id} className={cn(
+                                        "group hover:bg-muted/30 transition-colors",
+                                        selectedOrderIds.includes(order.id) && "bg-primary/5"
+                                    )}>
+                                        <td className="px-6 py-4">
+                                            <button onClick={() => toggleSelectOrder(order.id)} className="p-1 hover:bg-muted rounded">
+                                                {selectedOrderIds.includes(order.id) ? (
+                                                    <CheckSquare className="h-4 w-4 text-primary" />
+                                                ) : (
+                                                    <Square className="h-4 w-4" />
+                                                )}
+                                            </button>
+                                        </td>
                                         <td className="px-6 py-4">
                                             <span className="font-mono text-xs">
                                                 {order.id.slice(0, 8).toUpperCase()}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm">
-                                                {order.table_number}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
@@ -395,8 +506,11 @@ export default function AllOrdersPage() {
                                                 </span>
                                                 <span className="text-[10px] text-muted-foreground font-mono">
                                                     {order.invoices && order.invoices.length > 0 && order.invoices[0].customer_phone
-                                                        ? `📞 ${order.invoices[0].customer_phone}`
-                                                        : (order.customer_phone ? `📞 ${order.customer_phone}` : 'No Phone')}
+                                                        ? `${order.invoices[0].customer_phone}`
+                                                        : (order.customer_phone ? `${order.customer_phone}` : 'No Phone')}
+                                                </span>
+                                                <span className="text-[10px] text-primary/80 font-bold">
+                                                    Table {order.table_number}
                                                 </span>
                                             </div>
                                         </td>
@@ -440,6 +554,14 @@ export default function AllOrdersPage() {
                                                     onClick={() => handleGenerateInvoice(order)}
                                                 >
                                                     <Printer className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                    onClick={() => setDeleteTargetIds([order.id])}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
                                                 </Button>
                                             </div>
                                         </td>
@@ -583,6 +705,32 @@ export default function AllOrdersPage() {
                     )}
                 </DialogContent>
             </Dialog>
+
+            {/* Bulk Delete Dialog */}
+            <AlertDialog open={deleteTargetIds.length > 0} onOpenChange={(open) => !open && setDeleteTargetIds([])}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+                            <AlertCircle className="h-5 w-5" />
+                            Confirm Deletion
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete {deleteTargetIds.length} order(s)?
+                            This action will permanently remove the orders, their items, and any recorded invoices.
+                            This cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => handleDeleteOrders(deleteTargetIds)}
+                            className="bg-red-600 hover:bg-red-700"
+                        >
+                            {isDeleting ? "Deleting..." : "Confirm Delete"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

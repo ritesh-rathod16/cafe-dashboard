@@ -547,8 +547,7 @@ export default function AdminOrders() {
             <thead className="bg-muted/50 text-xs font-bold uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-center">Table</th>
-                <th className="px-6 py-4">Customer Name</th>
+                <th className="px-6 py-4">Customer Name & Table</th>
                 <th className="px-6 py-4">Cashier</th>
                 <th className="px-6 py-4">Items</th>
                 <th className="px-6 py-4">Total</th>
@@ -562,11 +561,6 @@ export default function AdminOrders() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(order.status)}
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm">
-                      {order.table_number}
-                    </span>
-                  </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
                       <span className="text-sm font-bold">
@@ -576,8 +570,11 @@ export default function AdminOrders() {
                       </span>
                       <span className="text-[10px] text-muted-foreground font-mono">
                         {order.invoices && order.invoices.length > 0 && order.invoices[0].customer_phone
-                          ? `📞 ${order.invoices[0].customer_phone}`
-                          : (order.customer_phone ? `📞 ${order.customer_phone}` : 'No Phone')}
+                          ? `${order.invoices[0].customer_phone}`
+                          : (order.customer_phone ? `${order.customer_phone}` : 'No Phone')}
+                      </span>
+                      <span className="text-[10px] text-primary/80 font-bold">
+                        Table {order.table_number}
                       </span>
                     </div>
                   </td>

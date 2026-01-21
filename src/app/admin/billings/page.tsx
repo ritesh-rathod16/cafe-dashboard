@@ -595,7 +595,7 @@ export default function BillingsPage() {
                                     <div className="flex flex-col">
                                         <span className="text-sm font-bold text-foreground">{inv.customer_name || inv.orders?.customer_name || 'Walk-in'}</span>
                                         <span className="text-[10px] text-muted-foreground font-mono">
-                                            {(inv.customer_phone || inv.orders?.customer_phone) ? `📞 ${inv.customer_phone || inv.orders?.customer_phone}` : 'No Phone'}
+                                            {(inv.customer_phone || inv.orders?.customer_phone) ? (inv.customer_phone || inv.orders?.customer_phone) : 'No Phone'}
                                         </span>
                                         <span className="mt-1 text-xs text-muted-foreground">Cashier: <strong>{inv.cashier_name || 'Admin'}</strong></span>
                                     </div>
