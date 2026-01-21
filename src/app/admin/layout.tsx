@@ -20,6 +20,7 @@ import {
   ChevronDown,
   Store,
   Image as ImageIcon,
+  Calendar,
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -57,6 +58,7 @@ const SUPER_ADMIN_EMAIL = "caferepublic@gmail.com";
 const adminNavItems = [
   { label: "Overview", href: "/admin/dashboard", icon: LayoutDashboard, roles: ['super_admin', 'employee', 'cashier'] },
   { label: "Tables", href: "/admin/tables", icon: Grid3X3, roles: ['super_admin', 'employee', 'cashier'] },
+  { label: "Bookings", href: "/admin/bookings", icon: Calendar, roles: ['super_admin', 'employee', 'cashier'] },
   { label: "Live Orders", href: "/admin/orders", icon: ShoppingBag, roles: ['super_admin', 'employee'] },
   { label: "Menu Management", href: "/admin/menu", icon: MenuIcon, roles: ['super_admin', 'employee'] },
   { label: "Gallery", href: "/admin/gallery", icon: ImageIcon, roles: ['super_admin', 'employee'] },
