@@ -244,6 +244,12 @@ export default function AdminOrders() {
     const subtotal = Number(order.total_price) / 1.05;
     const taxAmount = Number(order.total_price) - subtotal;
 
+    const cgst = Math.round(subtotal * 0.025 * 100) / 100;
+    const sgst = Math.round(subtotal * 0.025 * 100) / 100;
+    const total = subtotal + cgst + sgst;
+    const roundedTotal = Math.round(total);
+    const rounding = Math.round((roundedTotal - total) * 100) / 100;
+
     const { error } = await supabase
       .from("invoices")
       .insert({
@@ -251,15 +257,16 @@ export default function AdminOrders() {
         invoice_number: invoiceNumber,
         table_number: order.table_number,
         subtotal: subtotal,
-        tax_amount: taxAmount,
-        total_amount: Number(order.total_price),
+        cgst: cgst,
+        sgst: sgst,
+        rounding: rounding,
+        total: roundedTotal,
         payment_mode: paymentMode,
-        items: order.order_items.map(i => ({
-          name: i.menu_items.name,
-          quantity: i.quantity,
-          price: Number(i.price_at_order),
-          total: i.quantity * Number(i.price_at_order)
-        }))
+        payment_status: "paid",
+        cashier_name: order.biller_name || "Admin",
+        customer_name: order.customer_name,
+        customer_phone: order.customer_phone,
+        order_type: "dine-in"
       });
 
     if (error && !error.message.includes('duplicate')) {
