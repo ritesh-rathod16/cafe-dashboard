@@ -21,7 +21,8 @@ import {
   Store,
   Image as ImageIcon,
   Calendar,
-  X
+  X,
+  Receipt
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -59,7 +60,9 @@ const adminNavItems = [
   { label: "Overview", href: "/admin/dashboard", icon: LayoutDashboard, roles: ['super_admin', 'employee', 'cashier'] },
   { label: "Tables", href: "/admin/tables", icon: Grid3X3, roles: ['super_admin', 'employee', 'cashier'] },
   { label: "Bookings", href: "/admin/bookings", icon: Calendar, roles: ['super_admin', 'employee', 'cashier'] },
-  { label: "Live Orders", href: "/admin/orders", icon: ShoppingBag, roles: ['super_admin', 'employee'] },
+  { label: "Live Orders", href: "/admin/orders", icon: ShoppingBag, roles: ['super_admin', 'employee', 'cashier'] },
+  { label: "All Orders", href: "/admin/all-orders", icon: History, roles: ['super_admin', 'employee', 'cashier'] },
+  { label: "Billings", href: "/admin/billings", icon: Receipt, roles: ['super_admin', 'cashier'] },
   { label: "Menu Management", href: "/admin/menu", icon: MenuIcon, roles: ['super_admin', 'employee'] },
   { label: "Gallery", href: "/admin/gallery", icon: ImageIcon, roles: ['super_admin', 'employee'] },
   { label: "Reports", href: "/admin/reports", icon: BarChart3, roles: ['super_admin', 'employee'] },

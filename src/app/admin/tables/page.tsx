@@ -21,7 +21,8 @@ import {
   Smartphone,
   Receipt,
   Trash2,
-  Settings
+  Settings,
+  User
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 type Table = {
+  biller_name?: string;
+  is_paid?: boolean;
   id: number;
   status: string;
   current_order_id: string | null;
@@ -55,6 +58,9 @@ type OrderItem = {
 type Order = {
   id: string;
   table_number: number;
+  customer_name?: string;
+  customer_phone?: string;
+  biller_name?: string;
   status: string;
   total_price: number;
   created_at: string;
@@ -74,6 +80,7 @@ type Invoice = {
   rounding: number;
   total: number;
   payment_mode: string;
+  cashier_name?: string;
   payment_status: string;
   generated_at: string;
 };
@@ -103,11 +110,31 @@ export default function AdminTablesPage() {
   const [showQuickPay, setShowQuickPay] = useState(false);
   const [showTableSettings, setShowTableSettings] = useState(false);
   const [tableCount, setTableCount] = useState(50);
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [billerName, setBillerName] = useState("");
+  const [showCustomerDetailsModal, setShowCustomerDetailsModal] = useState(false);
+  const [pendingPaymentMode, setPendingPaymentMode] = useState("");
   const invoiceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchTables();
     fetchMenuItems();
+
+    // Get logged-in user name
+    const getUserName = async () => {
+      const employeeSession = localStorage.getItem('employee_session');
+      if (employeeSession) {
+        const session = JSON.parse(employeeSession);
+        setBillerName(session.name || 'Staff');
+      } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setBillerName(user.user_metadata?.name || user.email?.split('@')[0] || 'Admin');
+        }
+      }
+    };
+    getUserName();
 
     const tablesChannel = supabase
       .channel("tables-changes")
@@ -202,6 +229,8 @@ export default function AdminTablesPage() {
   const openNewOrder = (table: Table) => {
     setSelectedTable(table);
     setCart([]);
+    setCustomerName("");
+    setCustomerPhone("");
     setModalMode("new");
     setCurrentOrder(null);
     setShowModal(true);
@@ -271,12 +300,16 @@ export default function AdminTablesPage() {
 
   const submitOrder = async () => {
     if (!selectedTable || cart.length === 0) return;
+
     setSubmitting(true);
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
         table_number: selectedTable.id,
+        customer_name: customerName.trim() || null,
+        customer_phone: customerPhone.trim() || null,
+        biller_name: billerName || null,
         status: "new",
         total_price: totalPrice,
         payment_mode: "pending"
@@ -306,6 +339,8 @@ export default function AdminTablesPage() {
     setSubmitting(false);
     setShowModal(false);
     setCart([]);
+    setCustomerName("");
+    setCustomerPhone("");
     setSelectedTable(null);
     fetchTables();
   };
@@ -367,7 +402,9 @@ export default function AdminTablesPage() {
         total: roundedTotal,
         payment_mode: mode,
         payment_status: "paid",
-        cashier_name: "Admin"
+        cashier_name: billerName || "Admin",
+        customer_name: customerName.trim(),
+        customer_phone: customerPhone.trim()
       })
       .select()
       .single();
@@ -402,8 +439,8 @@ export default function AdminTablesPage() {
   };
 
   const handleQuickPay = async (mode: string) => {
-    setPaymentMode(mode);
-    await generateInvoice(mode);
+    setPendingPaymentMode(mode);
+    setShowCustomerDetailsModal(true);
   };
 
   const printInvoice = () => {
@@ -837,6 +874,34 @@ export default function AdminTablesPage() {
                         <p className="text-xs text-muted-foreground">{cart.length} items • {modalMode}</p>
                       </div>
                     </div>
+
+                    {modalMode !== "view" && (
+                      <div className="mt-4 space-y-3">
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                            Customer Name (Optional)
+                          </label>
+                          <Input
+                            placeholder="Enter customer name..."
+                            value={customerName}
+                            onChange={e => setCustomerName(e.target.value)}
+                            className="rounded-xl"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">
+                            Customer Phone (Optional)
+                          </label>
+                          <Input
+                            placeholder="Enter phone number..."
+                            value={customerPhone}
+                            onChange={e => setCustomerPhone(e.target.value)}
+                            type="tel"
+                            className="rounded-xl"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex-1 overflow-y-auto p-4">
@@ -973,7 +1038,10 @@ export default function AdminTablesPage() {
                           Edit Order
                         </Button>
                         <Button
-                          onClick={() => generateInvoice(paymentMode)}
+                          onClick={() => {
+                            setPendingPaymentMode(paymentMode);
+                            setShowCustomerDetailsModal(true);
+                          }}
                           disabled={cart.length === 0 || generatingInvoice}
                           className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700"
                         >
@@ -1022,8 +1090,9 @@ export default function AdminTablesPage() {
                   <div className="legal text-[10px] text-muted-foreground mt-3 space-y-0.5">
                     <p>GSTIN: 27AXXXX1234X1ZX</p>
                     <p>FSSAI: 11523026000XXX</p>
-                    <p>123 Coffee Lane, Main Street</p>
-                    <p>Mumbai, Maharashtra - 400001</p>
+                    <p>Wardha Rd, below Chhatrapati Square Metro Station</p>
+                    <p>beside Santaji Mahavidyalaya, New Sneh Nagar</p>
+                    <p>Nagpur, Maharashtra 440015</p>
                     <p>Ph: +91 98765 43210</p>
                   </div>
                 </div>
@@ -1032,10 +1101,16 @@ export default function AdminTablesPage() {
                   <div className="grid grid-cols-2 gap-1">
                     <p><strong>Invoice:</strong> {currentInvoice.invoice_number}</p>
                     <p><strong>Table:</strong> {currentInvoice.table_number}</p>
+                    {customerName && (
+                      <p className="col-span-2 text-primary font-bold"><strong>Customer:</strong> {customerName}</p>
+                    )}
+                    {customerPhone && (
+                      <p className="col-span-2 text-primary font-bold"><strong>Phone:</strong> {customerPhone}</p>
+                    )}
                     <p><strong>Date:</strong> {new Date(currentInvoice.generated_at).toLocaleDateString("en-IN")}</p>
                     <p><strong>Time:</strong> {new Date(currentInvoice.generated_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</p>
                     <p><strong>Type:</strong> Dine-In</p>
-                    <p><strong>Cashier:</strong> Admin</p>
+                    <p><strong>Cashier:</strong> {currentInvoice.cashier_name || billerName || 'Admin'}</p>
                   </div>
                 </div>
 
@@ -1086,12 +1161,10 @@ export default function AdminTablesPage() {
                 </div>
 
                 <div className="footer text-center border-t-2 border-dashed border-gray-300 pt-4 mt-4">
-                  <div className="qr mx-auto w-20 h-20 border border-gray-300 rounded-lg flex items-center justify-center text-[8px] text-muted-foreground mb-3">
-                    QR for Review
-                  </div>
+                  <img src="/qr-code.png" alt="QR Code" className="mx-auto w-24 h-24 mb-3" />
                   <p className="text-xs font-medium">Thank You for Visiting!</p>
                   <p className="text-[10px] text-muted-foreground mt-1">Follow us @caferepublic</p>
-                  <p className="text-[10px] text-muted-foreground">Open Daily: 7AM - 11PM</p>
+                  <p className="text-[10px] text-muted-foreground">Open Daily: 10AM - 10PM</p>
                   <p className="text-[8px] text-muted-foreground mt-2">System generated invoice</p>
                   <p className="text-[8px] text-muted-foreground">Prices inclusive of applicable taxes</p>
                 </div>
@@ -1112,6 +1185,136 @@ export default function AdminTablesPage() {
                 >
                   <X className="h-4 w-4" />
                 </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Customer Details Modal - Before Payment */}
+      <AnimatePresence>
+        {showCustomerDetailsModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setShowCustomerDetailsModal(false)}
+                className="absolute right-4 top-4 rounded-full p-2 hover:bg-muted transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              <div className="text-center mb-6">
+                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <User className="h-8 w-8 text-primary" />
+                </div>
+                <h2 className="text-xl font-serif font-bold">Customer Details</h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Please enter customer information before payment
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">
+                    Customer Name <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    placeholder="Enter customer name..."
+                    value={customerName}
+                    onChange={e => setCustomerName(e.target.value)}
+                    className="rounded-xl"
+                    autoFocus
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">
+                    Customer Phone <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    placeholder="Enter phone number..."
+                    value={customerPhone}
+                    onChange={e => setCustomerPhone(e.target.value)}
+                    type="tel"
+                    className="rounded-xl"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">
+                    Cashier/Biller Name <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    placeholder="Enter cashier name..."
+                    value={billerName}
+                    onChange={e => setBillerName(e.target.value)}
+                    className="rounded-xl"
+                  />
+                </div>
+
+                <div className="pt-4 flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowCustomerDetailsModal(false)}
+                    className="flex-1 rounded-xl"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      if (!customerName.trim()) {
+                        toast.error("Please enter customer name");
+                        return;
+                      }
+                      if (!customerPhone.trim()) {
+                        toast.error("Please enter customer phone");
+                        return;
+                      }
+                      if (!billerName.trim()) {
+                        toast.error("Please enter cashier/biller name");
+                        return;
+                      }
+
+                      // Update order with customer details
+                      if (currentOrder) {
+                        await supabase
+                          .from("orders")
+                          .update({
+                            customer_name: customerName.trim(),
+                            customer_phone: customerPhone.trim(),
+                            biller_name: billerName.trim()
+                          })
+                          .eq("id", currentOrder.id);
+                      }
+
+                      setShowCustomerDetailsModal(false);
+                      setPaymentMode(pendingPaymentMode);
+                      await generateInvoice(pendingPaymentMode);
+                    }}
+                    className="flex-1 rounded-xl bg-primary"
+                    disabled={generatingInvoice}
+                  >
+                    {generatingInvoice ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Processing...
+                      </>
+                    ) : (
+                      "Proceed to Payment"
+                    )}
+                  </Button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

@@ -3,13 +3,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { createClient } from "@/lib/supabase-browser";
-import { 
-  Clock, 
-  CheckCircle2, 
-  ChefHat, 
-  Timer, 
-  ArrowRight, 
-  Printer, 
+import {
+  Clock,
+  CheckCircle2,
+  ChefHat,
+  Timer,
+  ArrowRight,
+  Printer,
   MoreVertical,
   Table as TableIcon,
   CreditCard,
@@ -24,10 +24,10 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
   DropdownMenuLabel
@@ -65,6 +65,9 @@ type OrderItem = {
 type Order = {
   id: string;
   table_number: number;
+  customer_name?: string;
+  customer_phone?: string;
+  biller_name?: string;
   status: string;
   total_price: number;
   created_at: string;
@@ -72,6 +75,12 @@ type Order = {
   payment_mode?: string;
   is_paid?: boolean;
   order_items: OrderItem[];
+  invoices?: {
+    cashier_name: string;
+    invoice_number: string;
+    customer_name?: string;
+    customer_phone?: string;
+  }[];
 };
 
 const statusFlow = ['new', 'preparing', 'ready', 'served', 'completed'];
@@ -93,10 +102,10 @@ export default function AdminOrders() {
 
     const channel = supabase
       .channel('admin_orders')
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'orders' 
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'orders'
       }, (payload) => {
         toast.info(`New order from Table ${payload.new.table_number}!`);
         if (audioRef.current) {
@@ -104,10 +113,10 @@ export default function AdminOrders() {
         }
         fetchOrders();
       })
-      .on('postgres_changes', { 
-        event: 'UPDATE', 
-        schema: 'public', 
-        table: 'orders' 
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'orders'
       }, fetchOrders)
       .subscribe();
 
@@ -119,14 +128,14 @@ export default function AdminOrders() {
   const fetchUserRole = async () => {
     const browserSupabase = createClient();
     const { data: { session } } = await browserSupabase.auth.getSession();
-    
+
     if (session) {
       const { data: adminUser } = await supabase
         .from("admin_users")
         .select("role")
         .eq("auth_user_id", session.user.id)
         .single();
-      
+
       if (adminUser) {
         setUserRole(adminUser.role || 'employee');
       }
@@ -138,6 +147,12 @@ export default function AdminOrders() {
       .from("orders")
       .select(`
         *,
+        invoices (
+          cashier_name,
+          invoice_number,
+          customer_name,
+          customer_phone
+        ),
         order_items (
           id,
           quantity,
@@ -259,11 +274,11 @@ export default function AdminOrders() {
 
       await supabase
         .from("orders")
-        .update({ 
-          status: 'completed', 
-          payment_mode: paymentMode, 
+        .update({
+          status: 'completed',
+          payment_mode: paymentMode,
           is_paid: true,
-          updated_at: new Date().toISOString() 
+          updated_at: new Date().toISOString()
         })
         .eq('id', orderId);
 
@@ -285,6 +300,9 @@ export default function AdminOrders() {
     generateInvoicePDF({
       invoiceNumber: order.id.slice(0, 8).toUpperCase(),
       tableNumber: order.table_number,
+      customerName: order.customer_name,
+      customerPhone: order.customer_phone,
+      cashierName: order.biller_name,
       date: new Date().toLocaleString(),
       items: order.order_items.map(i => ({
         name: i.menu_items.name,
@@ -342,13 +360,32 @@ export default function AdminOrders() {
     );
   };
 
+  const getStatusBadge = (status: string) => {
+    const styles: Record<string, string> = {
+      new: "bg-blue-100 text-blue-700",
+      preparing: "bg-orange-100 text-orange-700",
+      ready: "bg-green-100 text-green-700",
+      served: "bg-purple-100 text-purple-700",
+      completed: "bg-green-100 text-green-700",
+      cancelled: "bg-red-100 text-red-700"
+    };
+    return (
+      <span className={cn(
+        "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase",
+        styles[status] || "bg-gray-100 text-gray-700"
+      )}>
+        {status}
+      </span>
+    );
+  };
+
   const activeOrders = orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled');
   const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'cancelled');
 
   return (
     <div className="flex flex-col gap-8">
       <audio ref={audioRef} src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" />
-      
+
       <section>
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -375,9 +412,9 @@ export default function AdminOrders() {
               >
                 <Card className={cn(
                   "overflow-hidden border-2 transition-colors",
-                  order.status === 'new' ? "border-blue-200 bg-blue-50/30" : 
-                  order.status === 'preparing' ? "border-orange-200 bg-orange-50/30" :
-                  order.status === 'ready' ? "border-green-200 bg-green-50/30" : "border-border"
+                  order.status === 'new' ? "border-blue-200 bg-blue-50/30" :
+                    order.status === 'preparing' ? "border-orange-200 bg-orange-50/30" :
+                      order.status === 'ready' ? "border-green-200 bg-green-50/30" : "border-border"
                 )}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
                     <div className="flex items-center gap-2">
@@ -414,7 +451,7 @@ export default function AdminOrders() {
                           Complete (Card)
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           className="text-red-600"
                           onClick={() => setCancelOrderId(order.id)}
                         >
@@ -424,7 +461,7 @@ export default function AdminOrders() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </CardHeader>
-                  
+
                   <CardContent className="p-4">
                     <div className="space-y-3">
                       <div className="flex flex-col gap-2">
@@ -446,23 +483,23 @@ export default function AdminOrders() {
 
                       <div className="grid grid-cols-2 gap-2">
                         {order.status !== 'completed' && (
-                          <Button 
+                          <Button
                             onClick={() => updateStatus(order.id, order.status)}
                             className="col-span-1 rounded-xl font-bold uppercase tracking-wider text-[10px]"
                             variant={order.status === 'ready' ? 'secondary' : 'default'}
                           >
-                            {order.status === 'new' ? 'Start Prep' : 
-                             order.status === 'preparing' ? 'Mark Ready' : 
-                             order.status === 'ready' ? 'Mark Served' : 'Next Step'}
+                            {order.status === 'new' ? 'Start Prep' :
+                              order.status === 'preparing' ? 'Mark Ready' :
+                                order.status === 'ready' ? 'Mark Served' : 'Next Step'}
                             <ArrowRight className="ml-1 h-3 w-3" />
                           </Button>
                         )}
-                        
+
                         {(order.status === 'served' || order.status === 'ready') && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 className="col-span-1 border-2 rounded-xl font-bold uppercase tracking-wider text-[10px]"
                               >
                                 <Printer className="mr-1 h-3 w-3" /> Invoice
@@ -483,15 +520,15 @@ export default function AdminOrders() {
                         )}
                       </div>
 
-                      <div className="flex items-center justify-center gap-2 rounded-full bg-muted/50 py-1.5 px-3">
-                        <span className={cn(
-                          "h-2 w-2 rounded-full",
-                          order.status === 'new' ? "bg-blue-500" : 
-                          order.status === 'preparing' ? "bg-orange-500" :
-                          order.status === 'ready' ? "bg-green-500" : "bg-primary"
-                        )} />
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                          Status: {order.status}
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold">{order.customer_name || 'Walk-in'}</span>
+                          {order.customer_phone && (
+                            <span className="text-xs text-muted-foreground font-mono">📞 {order.customer_phone}</span>
+                          )}
+                        </div>
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-muted">
+                          {order.status}
                         </span>
                       </div>
                     </div>
@@ -507,34 +544,52 @@ export default function AdminOrders() {
         <h2 className="mb-6 text-xl font-serif font-bold text-muted-foreground">Recently Completed</h2>
         <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
           <table className="w-full text-left">
-            <thead>
-              <tr className="bg-muted/50 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                <th className="px-6 py-4">Table</th>
+            <thead className="bg-muted/50 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4 text-center">Table</th>
+                <th className="px-6 py-4">Customer Name</th>
+                <th className="px-6 py-4">Cashier</th>
                 <th className="px-6 py-4">Items</th>
-                <th className="px-6 py-4">Amount</th>
-                <th className="px-6 py-4">Payment</th>
-                <th className="px-6 py-4">Date & Time</th>
-                <th className="px-6 py-4 text-right">Action</th>
+                <th className="px-6 py-4">Total</th>
+                <th className="px-6 py-4">Time</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-border">
               {completedOrders.slice(0, 10).map((order) => (
                 <tr key={order.id} className="group hover:bg-muted/30 transition-colors">
-                  <td className="px-6 py-4 font-bold">Table {order.table_number}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {getStatusBadge(order.status)}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm">
+                      {order.table_number}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold">
+                        {order.invoices && order.invoices.length > 0 && order.invoices[0].customer_name
+                          ? order.invoices[0].customer_name
+                          : (order.customer_name || 'Walk-in')}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        {order.invoices && order.invoices.length > 0 && order.invoices[0].customer_phone
+                          ? `📞 ${order.invoices[0].customer_phone}`
+                          : (order.customer_phone ? `📞 ${order.customer_phone}` : 'No Phone')}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm font-medium">
+                    {order.invoices && order.invoices.length > 0
+                      ? order.invoices[0].cashier_name
+                      : (order.biller_name || 'Admin')}
+                  </td>
                   <td className="px-6 py-4 text-sm">
                     {order.order_items.length} items
                   </td>
                   <td className="px-6 py-4 font-bold text-primary">₹{Number(order.total_price).toFixed(0)}</td>
-                  <td className="px-6 py-4">
-                    {order.status === 'cancelled' ? (
-                      <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase bg-red-100 text-red-700">
-                        <XCircle className="h-3 w-3" />
-                        Cancelled
-                      </span>
-                    ) : (
-                      getPaymentModeBadge(order.payment_mode)
-                    )}
-                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       <Calendar className="h-3 w-3" />
@@ -565,7 +620,7 @@ export default function AdminOrders() {
                           {userRole === 'super_admin' && (
                             <>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem 
+                              <DropdownMenuItem
                                 className="text-red-600"
                                 onClick={() => setDeleteOrderId(order.id)}
                               >
@@ -595,7 +650,7 @@ export default function AdminOrders() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Keep Order</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={() => cancelOrderId && cancelOrder(cancelOrderId)}
               className="bg-red-600 hover:bg-red-700"
               disabled={cancellingOrder}
@@ -616,7 +671,7 @@ export default function AdminOrders() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={() => deleteOrderId && deleteOrder(deleteOrderId)}
               className="bg-red-600 hover:bg-red-700"
             >
@@ -686,6 +741,30 @@ export default function AdminOrders() {
                 <div className="flex items-center justify-between text-sm px-1">
                   <span className="text-muted-foreground">Order ID</span>
                   <span className="font-mono text-[10px] uppercase">{viewOrder.id.slice(0, 8)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm px-1 border-t pt-2 mt-1">
+                  <span className="text-muted-foreground">Customer Name</span>
+                  <span className="font-bold">
+                    {viewOrder.invoices && viewOrder.invoices.length > 0 && viewOrder.invoices[0].customer_name
+                      ? viewOrder.invoices[0].customer_name
+                      : (viewOrder.customer_name || 'Walk-in')}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm px-1">
+                  <span className="text-muted-foreground">Phone</span>
+                  <span className="font-mono">
+                    {viewOrder.invoices && viewOrder.invoices.length > 0 && viewOrder.invoices[0].customer_phone
+                      ? viewOrder.invoices[0].customer_phone
+                      : (viewOrder.customer_phone || 'N/A')}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm px-1">
+                  <span className="text-muted-foreground">Cashier</span>
+                  <span className="font-bold">
+                    {viewOrder.invoices && viewOrder.invoices.length > 0
+                      ? viewOrder.invoices[0].cashier_name
+                      : (viewOrder.biller_name || 'Admin')}
+                  </span>
                 </div>
               </div>
 
