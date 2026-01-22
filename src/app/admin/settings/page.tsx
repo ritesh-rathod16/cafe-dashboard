@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { 
-  Settings, 
-  Table as TableIcon, 
-  Plus, 
-  Minus, 
+import {
+  Settings,
+  Table as TableIcon,
+  Plus,
+  Minus,
   Save,
   Store,
   Loader2
@@ -20,6 +20,11 @@ import { toast } from "sonner";
 export default function AdminSettings() {
   const [totalTables, setTotalTables] = useState(50);
   const [cafeName, setCafeName] = useState("Cafe Republic");
+  const [phone, setPhone] = useState("+91 87888 39229");
+  const [address, setAddress] = useState("Wardha Rd, Nagpur, Maharashtra 440015");
+  const [gstin, setGstin] = useState("");
+  const [fssai, setFssai] = useState("");
+  const [tagline, setTagline] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [currentTableCount, setCurrentTableCount] = useState(0);
@@ -33,17 +38,22 @@ export default function AdminSettings() {
       .from("cafe_settings")
       .select("*")
       .eq("id", 1)
-      .single();
+      .maybeSingle();
 
     if (settings) {
       setTotalTables(settings.total_tables);
       setCafeName(settings.cafe_name || "Cafe Republic");
+      setPhone(settings.phone || "+91 87888 39229");
+      setAddress(settings.address || "Wardha Rd, Nagpur, Maharashtra 440015");
+      setGstin(settings.gstin || "");
+      setFssai(settings.fssai || "");
+      setTagline(settings.tagline || "");
     }
 
     const { count } = await supabase
       .from("cafe_tables")
       .select("*", { count: "exact", head: true });
-    
+
     setCurrentTableCount(count || 0);
     setLoading(false);
   };
@@ -53,10 +63,15 @@ export default function AdminSettings() {
     try {
       await supabase
         .from("cafe_settings")
-        .update({ 
-          total_tables: totalTables, 
+        .update({
+          total_tables: totalTables,
           cafe_name: cafeName,
-          updated_at: new Date().toISOString() 
+          phone: phone,
+          address: address,
+          gstin: gstin,
+          fssai: fssai,
+          tagline: tagline,
+          updated_at: new Date().toISOString()
         })
         .eq("id", 1);
 
@@ -126,14 +141,63 @@ export default function AdminSettings() {
             <CardDescription>Basic cafe details</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="cafeName">Cafe Name</Label>
+                <Input
+                  id="cafeName"
+                  value={cafeName}
+                  onChange={(e) => setCafeName(e.target.value)}
+                  placeholder="Enter cafe name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+91 00000 00000"
+                />
+              </div>
+            </div>
             <div className="space-y-2">
-              <Label htmlFor="cafeName">Cafe Name</Label>
-              <Input 
-                id="cafeName"
-                value={cafeName}
-                onChange={(e) => setCafeName(e.target.value)}
-                placeholder="Enter cafe name"
+              <Label htmlFor="address">Address</Label>
+              <Input
+                id="address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Full address"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tagline">Tagline (optional)</Label>
+              <Input
+                id="tagline"
+                value={tagline}
+                onChange={(e) => setTagline(e.target.value)}
+                placeholder="Where Every Sip Tells a Story"
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="gstin">GSTIN (optional)</Label>
+                <Input
+                  id="gstin"
+                  value={gstin}
+                  onChange={(e) => setGstin(e.target.value)}
+                  placeholder="27AXXXX1234X1ZX"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="fssai">FSSAI Number (optional)</Label>
+                <Input
+                  id="fssai"
+                  value={fssai}
+                  onChange={(e) => setFssai(e.target.value)}
+                  placeholder="11523026000XXX"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -149,8 +213,8 @@ export default function AdminSettings() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-center gap-6">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="icon"
                 className="h-12 w-12 rounded-full"
                 onClick={() => setTotalTables(Math.max(1, totalTables - 1))}
@@ -158,14 +222,14 @@ export default function AdminSettings() {
               >
                 <Minus className="h-6 w-6" />
               </Button>
-              
+
               <div className="text-center">
                 <div className="text-5xl font-serif font-bold text-primary">{totalTables}</div>
                 <p className="text-sm text-muted-foreground mt-1">Total Tables</p>
               </div>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 size="icon"
                 className="h-12 w-12 rounded-full"
                 onClick={() => setTotalTables(totalTables + 1)}
@@ -180,7 +244,7 @@ export default function AdminSettings() {
               </p>
               {totalTables !== currentTableCount && (
                 <p className="text-xs text-orange-600 mt-1">
-                  {totalTables > currentTableCount 
+                  {totalTables > currentTableCount
                     ? `${totalTables - currentTableCount} new tables will be added`
                     : `${currentTableCount - totalTables} tables will be removed`}
                 </p>
@@ -205,8 +269,8 @@ export default function AdminSettings() {
       </div>
 
       <div className="flex justify-end">
-        <Button 
-          onClick={handleSaveSettings} 
+        <Button
+          onClick={handleSaveSettings}
           disabled={saving}
           className="h-12 px-8 rounded-full font-bold"
         >
