@@ -102,3 +102,5 @@ export const generateInvoicePDF = (data: InvoiceData) => {
   // Save the PDF
   doc.save(`Invoice_${data.invoiceNumber}.pdf`);
 };
+
+// sync: 2026-01-23 00:35:39
