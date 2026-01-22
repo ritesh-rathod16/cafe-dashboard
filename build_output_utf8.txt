@@ -1,0 +1,695 @@
+﻿
+> app@0.1.0 build
+> next build
+
+   Γû▓ Next.js 15.1.11
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+node.exe : Failed 
+to compile.
+At line:1 char:1
++ & "C:\Program File
+s\nodejs/node.exe" "
+C:\Users\Asus\AppDat
+a\Roaming\n ...
++ ~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
+    + CategoryInfo  
+            : NotS  
+  pecified: (Fail   
+ ed to compile.:    
+String) [], Rem    
+oteException
+    + FullyQualifie 
+   dErrorId : Nati  
+  veCommandError
+ 
+
+./src/app/admin/all-
+orders/page.tsx
+Error:   [31mx[0m 
+Merge conflict 
+marker encountered.
+   ,-[[36;1;4mC:\Us
+ers\Asus\Documents\F
+ull Stack 
+Projects\Cafe Republ
+ic\src\app\admin\all
+-orders\page.tsx[0m
+:1:1]
+ [2m1[0m | 
+<<<<<<< HEAD
+   : 
+[35;1m^^^^^^^[0m
+ [2m2[0m | =======
+ [2m3[0m | // All 
+Orders Page.
+ [2m3[0m | 
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+   `----
+  [31mx[0m Merge 
+conflict marker 
+encountered.
+   ,-[[36;1;4mC:\Us
+ers\Asus\Documents\F
+ull Stack 
+Projects\Cafe Republ
+ic\src\app\admin\all
+-orders\page.tsx[0m
+:2:1]
+ [2m1[0m | 
+<<<<<<< HEAD
+ [2m2[0m | =======
+   : 
+[35;1m^^^^^^^[0m
+ [2m3[0m | // All 
+Orders Page.
+ [2m4[0m | 
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+ [2m4[0m | "use 
+client";
+   `----
+  [31mx[0m Merge 
+conflict marker 
+encountered.
+   ,-[[36;1;4mC:\Us
+ers\Asus\Documents\F
+ull Stack 
+Projects\Cafe Republ
+ic\src\app\admin\all
+-orders\page.tsx[0m
+:4:1]
+ [2m1[0m | 
+<<<<<<< HEAD
+ [2m2[0m | =======
+ [2m3[0m | // All 
+Orders Page.
+ [2m4[0m | 
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+   : 
+[35;1m^^^^^^^[0m
+ [2m5[0m | "use 
+client";
+ [2m6[0m | 
+ [2m6[0m | import 
+React, { useState, 
+useEffect } from 
+"react";
+   `----
+  [31mx[0m Merge 
+conflict marker 
+encountered.
+    ,-[[36;1;4mC:\U
+sers\Asus\Documents\
+Full Stack 
+Projects\Cafe Republ
+ic\src\app\admin\all
+-orders\page.tsx[0m
+:24:1]
+ [2m21[0m |     
+AlertCircle,
+ [2m22[0m |     
+ChevronLeft,
+ [2m23[0m |     
+ChevronRight,
+ [2m24[0m | 
+<<<<<<< HEAD
+    : 
+[35;1m^^^^^^^[0m
+ [2m25[0m |     X,
+ [2m26[0m |     
+Receipt
+ [2m26[0m | } 
+from "lucide-react";
+    `----
+  [31mx[0m Merge 
+conflict marker 
+encountered.
+    ,-[[36;1;4mC:\U
+sers\Asus\Documents\
+Full Stack 
+Projects\Cafe Republ
+ic\src\app\admin\all
+-orders\page.tsx[0m
+:29:1]
+ [2m26[0m |     
+Receipt
+ [2m27[0m | } 
+from "lucide-react";
+ [2m28[0m | 
+import { useRef } 
+from "react";
+ [2m29[0m | 
+=======
+    : 
+[35;1m^^^^^^^[0m
+ [2m30[0m |     X
+ [2m31[0m | } 
+from "lucide-react";
+ [2m31[0m | 
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+    `----
+  [31mx[0m 
+Expression expected
+    ,-[[36;1;4mC:\U
+sers\Asus\Documents\
+Full Stack 
+Projects\Cafe Republ
+ic\src\app\admin\all
+-orders\page.tsx[0m
+:31:1]
+ [2m28[0m | 
+import { useRef } 
+from "react";
+ [2m29[0m | 
+=======
+ [2m30[0m |     X
+ [2m31[0m | } 
+from "lucide-react";
+    : [35;1m^[0m
+ [2m32[0m | 
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+ [2m33[0m | 
+import {
+ [2m33[0m |     
+AlertDialog,
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for 
+requested module:
+./src/app/admin/all-
+orders/page.tsx
+
+./src/app/admin/bill
+ings/page.tsx
+Error:   [31mx[0m 
+Merge conflict 
+marker encountered.
+   ,-[[36;1;4mC:\Us
+ers\Asus\Documents\F
+ull Stack 
+Projects\Cafe Republ
+ic\src\app\admin\bil
+lings\page.tsx[0m:1
+:1]
+ [2m1[0m | 
+<<<<<<< HEAD
+   : 
+[35;1m^^^^^^^[0m
+ [2m2[0m | =======
+ [2m3[0m | // 
+Billings Page.
+ [2m3[0m | 
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+   `----
+  [31mx[0m Merge 
+conflict marker 
+encountered.
+   ,-[[36;1;4mC:\Us
+ers\Asus\Documents\F
+ull Stack 
+Projects\Cafe Republ
+ic\src\app\admin\bil
+lings\page.tsx[0m:2
+:1]
+ [2m1[0m | 
+<<<<<<< HEAD
+ [2m2[0m | =======
+   : 
+[35;1m^^^^^^^[0m
+ [2m3[0m | // 
+Billings Page.
+ [2m4[0m | 
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+ [2m4[0m | "use 
+client";
+   `----
+  [31mx[0m Merge 
+conflict marker 
+encountered.
+   ,-[[36;1;4mC:\Us
+ers\Asus\Documents\F
+ull Stack 
+Projects\Cafe Republ
+ic\src\app\admin\bil
+lings\page.tsx[0m:4
+:1]
+ [2m1[0m | 
+<<<<<<< HEAD
+ [2m2[0m | =======
+ [2m3[0m | // 
+Billings Page.
+ [2m4[0m | 
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+   : 
+[35;1m^^^^^^^[0m
+ [2m5[0m | "use 
+client";
+ [2m6[0m | 
+ [2m6[0m | import 
+React, { useState, 
+useEffect, useRef } 
+from "react";
+   `----
+  [31mx[0m 
+Expected ident
+    ,-[[36;1;4mC:\U
+sers\Asus\Documents\
+Full Stack 
+Projects\Cafe Republ
+ic\src\app\admin\bil
+lings\page.tsx[0m:6
+4:1]
+ [2m61[0m |     
+total: number;
+ [2m62[0m |     
+payment_mode: 
+string;
+ [2m63[0m |     
+cashier_name?: 
+string;
+ [2m64[0m | 
+<<<<<<< HEAD
+    : [35;1m ^[0m
+ [2m65[0m |     
+customer_name?: 
+string;
+ [2m66[0m |     
+customer_phone?: 
+string;
+ [2m66[0m | 
+=======
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for 
+requested module:
+./src/app/admin/bill
+ings/page.tsx
+
+./src/app/admin/layo
+ut.tsx
+Error:   [31mx[0m 
+Merge conflict 
+marker encountered.
+   ,-[[36;1;4mC:\Us
+ers\Asus\Documents\F
+ull Stack 
+Projects\Cafe Republ
+ic\src\app\admin\lay
+out.tsx[0m:1:1]
+ [2m1[0m | 
+<<<<<<< HEAD
+   : 
+[35;1m^^^^^^^[0m
+ [2m2[0m | =======
+ [2m3[0m | // 
+Admin Layout with 
+Mobile Menu.
+ [2m3[0m | 
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+   `----
+  [31mx[0m Merge 
+conflict marker 
+encountered.
+   ,-[[36;1;4mC:\Us
+ers\Asus\Documents\F
+ull Stack 
+Projects\Cafe Republ
+ic\src\app\admin\lay
+out.tsx[0m:2:1]
+ [2m1[0m | 
+<<<<<<< HEAD
+ [2m2[0m | =======
+   : 
+[35;1m^^^^^^^[0m
+ [2m3[0m | // 
+Admin Layout with 
+Mobile Menu.
+ [2m4[0m | 
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+ [2m4[0m | "use 
+client";
+   `----
+  [31mx[0m Merge 
+conflict marker 
+encountered.
+   ,-[[36;1;4mC:\Us
+ers\Asus\Documents\F
+ull Stack 
+Projects\Cafe Republ
+ic\src\app\admin\lay
+out.tsx[0m:4:1]
+ [2m1[0m | 
+<<<<<<< HEAD
+ [2m2[0m | =======
+ [2m3[0m | // 
+Admin Layout with 
+Mobile Menu.
+ [2m4[0m | 
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+   : 
+[35;1m^^^^^^^[0m
+ [2m5[0m | "use 
+client";
+ [2m6[0m | 
+ [2m6[0m | import 
+React, { useEffect, 
+useState, useRef } 
+from "react";
+   `----
+  [31mx[0m Merge 
+conflict marker 
+encountered.
+    ,-[[36;1;4mC:\U
+sers\Asus\Documents\
+Full Stack 
+Projects\Cafe Republ
+ic\src\app\admin\lay
+out.tsx[0m:29:1]
+ [2m26[0m |   
+Image as ImageIcon,
+ [2m27[0m |   
+Calendar,
+ [2m28[0m |   X,
+ [2m29[0m | 
+<<<<<<< HEAD
+    : 
+[35;1m^^^^^^^[0m
+ [2m30[0m |   
+Utensils,
+ [2m31[0m |   
+DollarSign
+ [2m31[0m | 
+=======
+    `----
+  [31mx[0m Merge 
+conflict marker 
+encountered.
+    ,-[[36;1;4mC:\U
+sers\Asus\Documents\
+Full Stack 
+Projects\Cafe Republ
+ic\src\app\admin\lay
+out.tsx[0m:32:1]
+ [2m29[0m | 
+<<<<<<< HEAD
+ [2m30[0m |   
+Utensils,
+ [2m31[0m |   
+DollarSign
+ [2m32[0m | 
+=======
+    : 
+[35;1m^^^^^^^[0m
+ [2m33[0m |   
+Receipt
+ [2m34[0m | 
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+ [2m34[0m | } 
+from "lucide-react";
+    `----
+  [31mx[0m 
+Expected ',', got 
+'Receipt'
+    ,-[[36;1;4mC:\U
+sers\Asus\Documents\
+Full Stack 
+Projects\Cafe Republ
+ic\src\app\admin\lay
+out.tsx[0m:32:1]
+ [2m29[0m |     
+<<<<<<< HEAD
+ [2m30[0m |       
+Utensils,
+ [2m31[0m |       
+DollarSign
+ [2m32[0m | [35;1
+m,[0m[35;1m-[0m[
+35;1m>[0m =======
+ [2m33[0m | [35;1
+m`[0m[35;1m-[0m[
+35;1m>[0m   Receipt
+ [2m34[0m |     
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+ [2m35[0m |     } 
+from "lucide-react";
+ [2m35[0m |     
+import { cn } from 
+"@/lib/utils";
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for 
+requested module:
+./src/app/admin/layo
+ut.tsx
+
+./src/app/admin/orde
+rs/page.tsx
+Error:   [31mx[0m 
+Merge conflict 
+marker encountered.
+   ,-[[36;1;4mC:\Us
+ers\Asus\Documents\F
+ull Stack 
+Projects\Cafe Republ
+ic\src\app\admin\ord
+ers\page.tsx[0m:1:1
+]
+ [2m1[0m | 
+<<<<<<< HEAD
+   : 
+[35;1m^^^^^^^[0m
+ [2m2[0m | =======
+ [2m3[0m | // 
+Live Orders Page.
+ [2m3[0m | 
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+   `----
+  [31mx[0m Merge 
+conflict marker 
+encountered.
+   ,-[[36;1;4mC:\Us
+ers\Asus\Documents\F
+ull Stack 
+Projects\Cafe Republ
+ic\src\app\admin\ord
+ers\page.tsx[0m:2:1
+]
+ [2m1[0m | 
+<<<<<<< HEAD
+ [2m2[0m | =======
+   : 
+[35;1m^^^^^^^[0m
+ [2m3[0m | // 
+Live Orders Page.
+ [2m4[0m | 
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+ [2m4[0m | "use 
+client";
+   `----
+  [31mx[0m Merge 
+conflict marker 
+encountered.
+   ,-[[36;1;4mC:\Us
+ers\Asus\Documents\F
+ull Stack 
+Projects\Cafe Republ
+ic\src\app\admin\ord
+ers\page.tsx[0m:4:1
+]
+ [2m1[0m | 
+<<<<<<< HEAD
+ [2m2[0m | =======
+ [2m3[0m | // 
+Live Orders Page.
+ [2m4[0m | 
+>>>>>>> 9f44e69c85b0
+f290cb7f4b4387644c3f
+dc161e54
+   : 
+[35;1m^^^^^^^[0m
+ [2m5[0m | "use 
+client";
+ [2m6[0m | 
+ [2m6[0m | import 
+React, { useState, 
+useEffect, useRef } 
+from "react";
+   `----
+  [31mx[0m 
+Expected ident
+    ,-[[36;1;4mC:\U
+sers\Asus\Documents\
+Full Stack 
+Projects\Cafe Republ
+ic\src\app\admin\ord
+ers\page.tsx[0m:72:
+1]
+ [2m69[0m | type 
+Order = {
+ [2m70[0m |   id: 
+string;
+ [2m71[0m |   
+table_number: 
+number;
+ [2m72[0m | 
+<<<<<<< HEAD
+    : [35;1m ^[0m
+ [2m73[0m | 
+=======
+ [2m74[0m |   
+customer_name?: 
+string;
+ [2m74[0m |   
+customer_phone?: 
+string;
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for 
+requested module:
+./src/app/admin/orde
+rs/page.tsx
+
+./src/app/admin/sett
+ings/page.tsx
+Error:   [31mx[0m 
+Merge conflict 
+marker encountered.
+   ,-[[36;1;4mC:\Us
+ers\Asus\Documents\F
+ull Stack 
+Projects\Cafe Republ
+ic\src\app\admin\set
+tings\page.tsx[0m:5
+:1]
+ [2m2[0m | 
+ [2m3[0m | import 
+React, { useState, 
+useEffect } from 
+"react";
+ [2m4[0m | import 
+{ supabase } from 
+"@/lib/supabase";
+ [2m5[0m | 
+<<<<<<< HEAD
+   : 
+[35;1m^^^^^^^[0m
+ [2m6[0m | import 
+{
+ [2m7[0m |   
+Settings,
+ [2m7[0m |   
+Table as TableIcon,
+   `----
+  [31mx[0m Merge 
+conflict marker 
+encountered.
+    ,-[[36;1;4mC:\U
+sers\Asus\Documents\
+Full Stack 
+Projects\Cafe Republ
+ic\src\app\admin\set
+tings\page.tsx[0m:1
+1:1]
+ [2m 8[0m |   
+Table as TableIcon,
+ [2m 9[0m |   
+Plus,
+ [2m10[0m |   
+Minus,
+ [2m11[0m | 
+=======
+    : 
+[35;1m^^^^^^^[0m
+ [2m12[0m | 
+import { 
+ [2m13[0m |   
+Settings, 
+ [2m13[0m |   
+Table as TableIcon, 
+    `----
+  [31mx[0m 
+Expected ',', got 
+'{'
+    ,-[[36;1;4mC:\U
+sers\Asus\Documents\
+Full Stack 
+Projects\Cafe Republ
+ic\src\app\admin\set
+tings\page.tsx[0m:1
+2:1]
+ [2m 9[0m |   
+Plus,
+ [2m10[0m |   
+Minus,
+ [2m11[0m | 
+=======
+ [2m12[0m | 
+import { 
+    : [35;1m       
+^[0m
+ [2m13[0m |   
+Settings, 
+ [2m14[0m |   
+Table as TableIcon, 
+ [2m14[0m |   
+Plus, 
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for 
+requested module:
+./src/app/admin/sett
+ings/page.tsx
+
+
+> Build failed 
+because of webpack 
+errors
