@@ -1,3 +1,4 @@
+// Billings Page.
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";

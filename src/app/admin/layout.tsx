@@ -1,3 +1,4 @@
+// Admin Layout with Mobile Menu.
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
@@ -79,6 +80,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [userName, setUserName] = useState("Admin User");
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const processedEventIds = useRef<Set<string>>(new Set());
   const lastOrderTotals = useRef<Map<string, number>>(new Map());
 
@@ -435,11 +437,86 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
+      {/* Mobile Sidebar */}
+      {showMobileSidebar && (
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            onClick={() => setShowMobileSidebar(false)}
+          />
+
+          {/* Sidebar */}
+          <aside className="fixed left-0 top-0 z-50 h-full w-64 border-r bg-white lg:hidden transform transition-transform duration-300">
+            <div className="flex h-16 items-center justify-between border-b px-6">
+              <Link href="/admin/dashboard" className="flex items-center gap-2" onClick={() => setShowMobileSidebar(false)}>
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-secondary">
+                  <MenuIcon className="h-5 w-5" />
+                </div>
+                <span className="text-lg font-serif font-bold tracking-tight">CAFE ADMIN</span>
+              </Link>
+              <button
+                onClick={() => setShowMobileSidebar(false)}
+                className="rounded-lg p-2 hover:bg-muted transition-colors"
+                aria-label="Close menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <nav className="flex flex-col gap-1 p-4">
+              {filteredNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setShowMobileSidebar(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-primary text-white shadow-md"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            <div className="absolute bottom-4 left-4 right-4">
+              <button
+                onClick={() => {
+                  setShowMobileSidebar(false);
+                  handleLogout();
+                }}
+                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <LogOut className="h-5 w-5" />
+                Sign Out
+              </button>
+            </div>
+          </aside>
+        </>
+      )}
+
       <div className="flex flex-1 flex-col lg:pl-64">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white/80 px-4 backdrop-blur-md lg:px-8">
-          <h2 className="text-xl font-bold capitalize">
-            {adminNavItems.find(i => i.href === pathname)?.label || "Admin"}
-          </h2>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowMobileSidebar(true)}
+              className="lg:hidden rounded-lg p-2 hover:bg-muted transition-colors"
+              aria-label="Open menu"
+            >
+              <MenuIcon className="h-6 w-6" />
+            </button>
+            <h2 className="text-xl font-bold capitalize">
+              {adminNavItems.find(i => i.href === pathname)?.label || "Admin"}
+            </h2>
+          </div>
 
           <div className="flex items-center gap-4">
             <a
