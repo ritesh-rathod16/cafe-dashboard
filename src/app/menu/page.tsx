@@ -303,8 +303,8 @@ export default function MenuPage() {
                       {item.description}
                     </p>
                     <div className="mt-2 flex gap-2">
-                      {item.is_vegetarian && <Leaf className="h-4 w-4 text-green-600" />}
-                      {item.is_spicy && <Flame className="h-4 w-4 text-red-600" />}
+                      {item.is_vegetarian && <Leaf className="h-3 w-3 text-green-500" title="Vegetarian" />}
+                      {item.is_spicy && <Flame className="h-3 w-3 text-red-500" title="Spicy" />}
                     </div>
                   </div>
 
@@ -350,7 +350,7 @@ export default function MenuPage() {
       </div>
 
       {totalItems > 0 && !showCart && (
-        <div className="fixed bottom-24 left-4 right-4 z-40 md:left-auto md:right-8 md:w-80">
+        <div className="fixed bottom-24 left-4 right-4 z-40 md:bottom-8 md:left-auto md:right-8 md:w-80">
           <Button
             onClick={() => setShowCart(true)}
             className="h-14 w-full justify-between rounded-full bg-primary px-6 shadow-2xl"
@@ -384,7 +384,7 @@ export default function MenuPage() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-3xl bg-white p-6 pb-24"
+              className="fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-3xl bg-white p-6 pb-8"
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-serif font-bold">Your Order</h2>
@@ -477,5 +477,3 @@ export default function MenuPage() {
     </div>
   );
 }
-
-// sync: 2026-01-23 00:35:39
